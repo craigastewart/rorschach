@@ -118,7 +118,6 @@ def main(args):
 	arr = filters.gaussian_filter(arr, args.blur)
 	arr_layer = filters.gaussian_filter(arr_layer, args.blur)
 	
-	
 	# Push all values under mean*args.bw_dropoff to black and everything else to white
 	mean_value = np.mean(arr)
 	arr[arr < mean_value*args.bw_dropoff] = 0
