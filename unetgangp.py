@@ -159,8 +159,8 @@ class CGenerateDataCallback(Callback):
         self.frequency = args.image_frequency
         self.gridsize = gridsize
         self.dataset = dataset
-        self.y = self.dataset.valid_day
-        self.xreal = self.dataset.valid_night
+        self.y = self.dataset[0][1].unsqueeze(0)
+        self.xreal = self.dataset[0][0].unsqueeze(0)
 
     def end_of_training_iteration(self, **_):
         # Check if it is time to generate images
