@@ -22,7 +22,7 @@ from gan_utils import save_args, initializer
 # from wgan_loss import WGANDiscriminatorLoss, WGANGeneratorLoss
 from wgan_loss import CWGANDiscriminatorLoss, WGANGeneratorLoss
 from unet import UnetUpsample
-from alderley_patchcwganp import patchCDiscriminatorNetwork, PixelDiscriminator
+from patchcwganp import patchCDiscriminatorNetwork, PixelDiscriminator
 
 
 class RorschachWrapper(Dataset):

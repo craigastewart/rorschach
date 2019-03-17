@@ -20,7 +20,7 @@ from inferno.trainers.callbacks.base import Callback
 from gan_utils import Reshape, format_images
 from gan_utils import save_args, initializer
 from wgan_loss import WGANDiscriminatorLoss, WGANGeneratorLoss
-from alderley_patchcwganp import patchCDiscriminatorNetwork
+from patchcwganp import patchCDiscriminatorNetwork
 from unet import UnetUpsample
 
 
