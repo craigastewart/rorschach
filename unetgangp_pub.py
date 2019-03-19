@@ -55,6 +55,14 @@ class RorschachWrapper(Dataset):
         
         return x, y, y
 
+    def get_test_ror(self, item):
+        ror_path = "../test_rorschach/test_" + str(item+1) + ".png"
+        y = Image.open(ror_path)
+        y = np.array(y) / 255.
+        y = np.transpose(y, (2, 0, 1))
+        y = torch.Tensor(y)
+        return y
+
 
 def rorschach_cgan_data_loader(args, dataset):
     # Create DataLoader for Rorschach
@@ -181,13 +189,20 @@ class CGenerateDataCallback(Callback):
             self.save_images()
             self.count = 0
 
-    def generate(self):
+def generate(self):
         # Set eval, generate, then set back to train
         self.trainer.model.eval()
         y = Variable(self.y)
         if self.trainer.is_cuda():
             y = y.cuda()
-        generated = self.trainer.model.generate(y)
+        generated = [self.trainer.model.generate(y)]
+
+        for i in range(10):
+            y = Variable(self.dataset.get_test_ror(i).unsqueeze(0))
+            if self.trainer.is_cuda():
+                y = y.cuda()
+            generated.append(self.trainer.model.generate(y))
+
         self.trainer.model.train()
         return generated
 
@@ -197,22 +212,25 @@ class CGenerateDataCallback(Callback):
         os.makedirs(path, exist_ok=True)  # create directory if necessary
         self.image_count += 1
         if(source):
-            image = Variable(self.y)
-            image_path = os.path.join(path, 'source.png'.format(self.image_count))
+            images = [Variable(self.y)]
+            image_paths = [os.path.join(path, 'source.png'.format(self.image_count))]
         elif(real):
-            image = Variable(self.xreal)
-            image_path = os.path.join(path, 'real_target.png'.format(self.image_count))
+            images = [Variable(self.xreal)]
+            image_paths = [os.path.join(path, 'real_target.png'.format(self.image_count))]
         else:
-            image = self.generate()
-            image_path = os.path.join(path, 'target_generated{:08d}.png'.format(self.image_count))
-        # Reshape, scale, and cast the data so it can be saved
-        grid = format_images(image).squeeze(0).permute(1, 2, 0)
-        if grid.size(2) == 1:
-            grid = grid.squeeze(2)
-        array = grid.data.cpu().numpy() * 255.
-        array = array.astype(np.uint8)
-        # Save the image
-        Image.fromarray(array).save(image_path)
+            images = self.generate()
+            image_paths = [os.path.join(path, 'test_'+str(i)+'/target_generated{:08d}.png'.format(self.image_count)) for i in range(len(images))]
+
+        for i in range(len(images)):
+            image = images[i]
+            # Reshape, scale, and cast the data so it can be saved
+            grid = format_images(image).squeeze(0).permute(1, 2, 0)
+            if grid.size(2) == 1:
+                grid = grid.squeeze(2)
+            array = grid.data.cpu().numpy() * 255.
+            array = array.astype(np.uint8)
+            # Save the image
+            Image.fromarray(array).save(image_paths[i])
 
 
 class CGeneratorTrainingCallback(Callback):
